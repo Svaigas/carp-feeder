@@ -6,6 +6,7 @@ const charts = new Map();
 let scenariosRendered = false;
 let feedsList = [];          // dostepne pasze (do listy wyboru)
 let userControlling = false; // czy uzytkownik aktywnie steruje suwakami
+let simRunning = true;       // czy symulacja jest uruchomiona
 
 function fmt(n, dp = 1) {
   return n == null ? '—' : Number(n).toFixed(dp);
@@ -71,9 +72,18 @@ function tankCard(t) {
     <div class="card-head">
       <div>
         <h2>${t.nazwa}</h2>
-        <div class="meta">${t.id} · ${fmt(t.powierzchniaHa)} ha · ${t.liczbaRyb.toLocaleString('pl')} szt. · ⌀ ${t.masaJednostkowaG} g</div>
+        <div class="meta">${t.id} · ${fmt(t.powierzchniaHa)} ha</div>
       </div>
-      <span class="stage-badge">${t.etap} · ${d.stage ? d.stage.nazwa : ''}</span>
+      <span class="stage-badge">${d.stage ? d.stage.etap : t.etap} · ${d.stage ? d.stage.nazwa : ''}</span>
+    </div>
+
+    <div class="stock-wrap">
+      <label class="stock-label">Obsada</label>
+      <div class="stock-fields">
+        <span class="field"><input type="number" class="stock-mass" data-tank="${t.id}" value="${t.masaJednostkowaG}" min="1" step="1" /> g/szt.</span>
+        <span class="field"><input type="number" class="stock-count" data-tank="${t.id}" value="${t.liczbaRyb}" min="1" step="1" /> szt.</span>
+        <button class="stock-apply" data-tank="${t.id}">Zastosuj</button>
+      </div>
     </div>
 
     <div class="feed-select-wrap">
@@ -138,12 +148,14 @@ function updateChart(t) {
   const labels = t.historia.map((h) => hourLabel(h.simHour));
   const temps = t.historia.map((h) => h.temperature);
   const oxys = t.historia.map((h) => h.oxygen);
+  const doses = t.historia.map((h) => h.recommendedKg);
 
   if (charts.has(t.id)) {
     const c = charts.get(t.id);
     c.data.labels = labels;
     c.data.datasets[0].data = temps;
     c.data.datasets[1].data = oxys;
+    c.data.datasets[2].data = doses;
     c.update('none');
     return;
   }
@@ -155,6 +167,7 @@ function updateChart(t) {
       datasets: [
         { label: 'T (°C)', data: temps, borderColor: '#ffb454', backgroundColor: 'rgba(255,180,84,0.1)', tension: 0.35, pointRadius: 0, yAxisID: 'yT', fill: true },
         { label: 'O₂ (mg/l)', data: oxys, borderColor: '#3a9bd9', backgroundColor: 'rgba(58,155,217,0.1)', tension: 0.35, pointRadius: 0, yAxisID: 'yO', fill: true },
+        { label: 'Dawka (kg/dobę)', data: doses, borderColor: '#34c6a8', backgroundColor: 'rgba(52,198,168,0.12)', borderWidth: 2, borderDash: [4, 3], tension: 0.35, pointRadius: 0, yAxisID: 'yD', fill: false },
       ],
     },
     options: {
@@ -166,6 +179,7 @@ function updateChart(t) {
         x: { ticks: { color: '#5d788a', maxTicksLimit: 6, font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
         yT: { position: 'left', ticks: { color: '#ffb454', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
         yO: { position: 'right', ticks: { color: '#3a9bd9', font: { size: 9 } }, grid: { drawOnChartArea: false } },
+        yD: { position: 'right', display: false, beginAtZero: true, grid: { drawOnChartArea: false } },
       },
     },
   });
@@ -176,6 +190,12 @@ function render(snapshot) {
   document.getElementById('simClock').textContent = hourLabel(snapshot.scenariusz.godzinaSym);
   feedsList = snapshot.paszeDostepne || feedsList;
 
+  simRunning = snapshot.symulacjaDziala;
+  const btn = document.getElementById('toggleSim');
+  btn.textContent = simRunning ? '⏸ Stop' : '▶ Wznów';
+  btn.classList.toggle('paused', !simRunning);
+  document.body.classList.toggle('sim-paused', !simRunning);
+
   renderScenarios(snapshot.scenariusz);
   syncManualSliders(snapshot);
 
@@ -185,16 +205,19 @@ function render(snapshot) {
     grid.innerHTML = snapshot.zbiorniki.map(tankCard).join('');
     snapshot.zbiorniki.forEach(updateChart);
     attachFeedHandlers();
+    attachStockHandlers();
   } else {
     snapshot.zbiorniki.forEach((t) => {
       const card = document.getElementById(`card-${t.id}`);
       if (card) {
         const fresh = document.createElement('div');
         fresh.innerHTML = tankCard(t);
-        // podmieniamy wszystko poza canvasem i lista wyboru paszy (zachowujemy je)
+        // zachowujemy elementy, z ktorymi uzytkownik moze wchodzic w interakcje
+        // (wykres, lista paszy, pola obsady) — reszte podmieniamy swiezym renderem
         const newCard = fresh.firstElementChild;
         newCard.querySelector('.chart-wrap').replaceWith(card.querySelector('.chart-wrap'));
         newCard.querySelector('.feed-select-wrap').replaceWith(card.querySelector('.feed-select-wrap'));
+        newCard.querySelector('.stock-wrap').replaceWith(card.querySelector('.stock-wrap'));
         card.replaceWith(newCard);
       }
       updateChart(t);
@@ -225,6 +248,27 @@ function attachFeedHandlers() {
   });
 }
 
+// Podpina obsluge edycji obsady (masa jednostkowa + liczba ryb).
+function attachStockHandlers() {
+  document.querySelectorAll('.stock-apply').forEach((btn) => {
+    const id = btn.dataset.tank;
+    const apply = () => {
+      const mass = document.querySelector(`.stock-mass[data-tank="${id}"]`).value;
+      const count = document.querySelector(`.stock-count[data-tank="${id}"]`).value;
+      fetch(`/api/tanks/${id}/stock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ masaJednostkowaG: Number(mass), liczbaRyb: Number(count) }),
+      });
+    };
+    btn.onclick = apply;
+    // Enter w polu rowniez zatwierdza
+    document.querySelectorAll(`.stock-mass[data-tank="${id}"], .stock-count[data-tank="${id}"]`).forEach((inp) => {
+      inp.onkeydown = (e) => { if (e.key === 'Enter') apply(); };
+    });
+  });
+}
+
 // --- sterowanie reczne ---
 const tempSlider = document.getElementById('tempSlider');
 const oxySlider = document.getElementById('oxySlider');
@@ -243,6 +287,15 @@ oxySlider.oninput = () => { userControlling = true; oxyOut.textContent = `${fmt(
 document.getElementById('resetManual').onclick = () => {
   userControlling = false; // suwaki znow podazaja za scenariuszem
   fetch('/api/manual', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reset: true }) });
+};
+
+// --- stop / wznow symulacji ---
+document.getElementById('toggleSim').onclick = () => {
+  fetch('/api/sim/running', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ running: !simRunning }), // przelacz stan
+  });
 };
 
 // --- ustawienie czasu symulacji ---

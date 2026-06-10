@@ -4,7 +4,7 @@
   "zbiorniki": [
     {
       "id": "STAW-A1",
-      "nazwa": "Staw A1 - narybek",
+      "nazwa": "Staw A1",
       "powierzchniaHa": 2.5,
       "etap": "K1",
       "liczbaRyb": 45000,
@@ -13,7 +13,7 @@
     },
     {
       "id": "STAW-B2",
-      "nazwa": "Staw B2 - kroczek",
+      "nazwa": "Staw B2",
       "powierzchniaHa": 6.0,
       "etap": "K2",
       "liczbaRyb": 8000,
@@ -22,7 +22,7 @@
     },
     {
       "id": "STAW-C3",
-      "nazwa": "Staw C3 - ryba handlowa",
+      "nazwa": "Staw C3",
       "powierzchniaHa": 12.0,
       "etap": "K3",
       "liczbaRyb": 3500,

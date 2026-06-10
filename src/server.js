@@ -37,14 +37,14 @@ const sim = new Simulator(herd.zbiorniki, { minutesPerTick: 20, startHour: 5 });
 // Klienci SSE (push na zywo)
 const sseClients = new Set();
 
-sim.on('reading', (reading) => {
-  const tank = herd.zbiorniki.find((t) => t.id === reading.tankId);
-  const state = tankState.get(reading.tankId);
+/**
+ * Przelicza decyzje dla zbiornika na podstawie danego odczytu i utrwala stan.
+ * Wspoldzielone przez tick symulatora oraz reczne zmiany obsady/paszy, dzieki czemu
+ * dawka kg/dobe przelicza sie natychmiast — takze gdy symulacja jest wstrzymana.
+ */
+function evaluateTank(tank, reading) {
+  const state = tankState.get(tank.id);
 
-  // 1. zapis odczytu do relacyjnej bazy
-  db.saveReading(reading);
-
-  // 2. ewaluacja silnika decyzyjnego (z histereza ze stanu poprzedniego)
   const decision = engine.evaluate(
     {
       massG: tank.masaJednostkowaG,
@@ -55,7 +55,7 @@ sim.on('reading', (reading) => {
     { blocked: state.prevBlocked }
   );
 
-  // 3. ekonomia: oszczednosc wzgledem "glupiego" karmnika podajacego pelna dawke bazowa
+  // ekonomia: oszczednosc wzgledem "glupiego" karmnika podajacego pelna dawke bazowa
   const feed = feedById.get(tank.paszaId);
   const savedKg = round(decision.baseDoseKg - decision.recommendedDoseKg, 2);
   const economics = feed
@@ -68,21 +68,34 @@ sim.on('reading', (reading) => {
       }
     : null;
 
-  // 4. utrwalenie stanu
   state.prevBlocked = decision.blocked;
   state.reading = reading;
   state.decision = decision;
   state.economics = economics;
 
   db.saveDecision({
-    tankId: reading.tankId,
+    tankId: tank.id,
     ts: reading.ts,
     status: decision.status,
     finalMult: decision.finalMultiplier,
     recommendedKg: decision.recommendedDoseKg,
     stressIndex: decision.stressIndex,
   });
+}
 
+/** Natychmiastowe przeliczenie na ostatnim odczycie (po zmianie obsady/paszy). */
+function recomputeTank(tank) {
+  const state = tankState.get(tank.id);
+  if (!state.reading) return; // brak odczytu jeszcze — nie ma na czym liczyc
+  evaluateTank(tank, state.reading);
+  broadcast();
+}
+
+sim.on('reading', (reading) => {
+  const tank = herd.zbiorniki.find((t) => t.id === reading.tankId);
+  evaluateTank(tank, reading); // najpierw decyzja (potrzebna dawka do zapisu)
+  reading.recommendedKg = tankState.get(tank.id).decision.recommendedDoseKg;
+  db.saveReading(reading); // zapis odczytu wraz z rekomendowana dawka
   broadcast();
 });
 
@@ -91,6 +104,7 @@ function buildSnapshot() {
   return {
     gospodarstwo: herd.gospodarstwo,
     scenariusz: { aktualny: sim.scenario, godzinaSym: round(sim.hour, 1), dostepne: sim.listScenarios() },
+    symulacjaDziala: sim.running,
     ambient: { temperature: round(env.temperature, 1), oxygen: round(env.oxygen, 1) },
     manualAktywny: sim.manual != null,
     paszeDostepne: feeds.pasze.map((f) => ({
@@ -146,6 +160,13 @@ app.post('/api/scenario', (req, res) => {
   }
 });
 
+app.post('/api/sim/running', (req, res) => {
+  if (req.body.running) sim.resume();
+  else sim.stop();
+  res.json({ ok: true, running: sim.running });
+  broadcast(); // po pauzie nie ma odczytow — wymus aktualizacje stanu przycisku w UI
+});
+
 app.post('/api/time', (req, res) => {
   let h;
   if (typeof req.body.hour === 'string' && req.body.hour.includes(':')) {
@@ -171,11 +192,25 @@ app.post('/api/manual', (req, res) => {
   res.json({ ok: true, manual: overrides });
 });
 
+app.post('/api/tanks/:id/stock', (req, res) => {
+  const tank = herd.zbiorniki.find((t) => t.id === req.params.id);
+  if (!tank) return res.status(404).json({ ok: false, error: 'Nieznany zbiornik' });
+  const masa = Number(req.body.masaJednostkowaG);
+  const liczba = Number(req.body.liczbaRyb);
+  if (!Number.isFinite(masa) || masa <= 0) return res.status(400).json({ ok: false, error: 'Nieprawidlowa masa' });
+  if (!Number.isFinite(liczba) || liczba <= 0) return res.status(400).json({ ok: false, error: 'Nieprawidlowa liczba ryb' });
+  tank.masaJednostkowaG = Math.round(masa);
+  tank.liczbaRyb = Math.round(liczba);
+  recomputeTank(tank); // natychmiastowe przeliczenie dawki, bez czekania na tick
+  res.json({ ok: true, masaJednostkowaG: tank.masaJednostkowaG, liczbaRyb: tank.liczbaRyb });
+});
+
 app.post('/api/tanks/:id/feed', (req, res) => {
   const tank = herd.zbiorniki.find((t) => t.id === req.params.id);
   if (!tank) return res.status(404).json({ ok: false, error: 'Nieznany zbiornik' });
   if (!feedById.has(req.body.feedId)) return res.status(400).json({ ok: false, error: 'Nieznana pasza' });
-  tank.paszaId = req.body.feedId; // przeliczy sie przy nastepnym odczycie (ekonomia)
+  tank.paszaId = req.body.feedId;
+  recomputeTank(tank); // natychmiastowe przeliczenie ekonomii
   res.json({ ok: true, paszaId: tank.paszaId });
 });
 

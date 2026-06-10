@@ -19,12 +19,13 @@ db.pragma('journal_mode = WAL');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS readings (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    tank_id     TEXT    NOT NULL,
-    ts          TEXT    NOT NULL,
-    sim_hour    REAL,
-    temperature REAL    NOT NULL,
-    oxygen      REAL    NOT NULL
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    tank_id        TEXT    NOT NULL,
+    ts             TEXT    NOT NULL,
+    sim_hour       REAL,
+    temperature    REAL    NOT NULL,
+    oxygen         REAL    NOT NULL,
+    recommended_kg REAL
   );
 
   CREATE INDEX IF NOT EXISTS idx_readings_tank_ts ON readings(tank_id, ts);
@@ -41,8 +42,8 @@ db.exec(`
 `);
 
 const insertReadingStmt = db.prepare(
-  `INSERT INTO readings (tank_id, ts, sim_hour, temperature, oxygen)
-   VALUES (@tankId, @ts, @simHour, @temperature, @oxygen)`
+  `INSERT INTO readings (tank_id, ts, sim_hour, temperature, oxygen, recommended_kg)
+   VALUES (@tankId, @ts, @simHour, @temperature, @oxygen, @recommendedKg)`
 );
 
 const insertDecisionStmt = db.prepare(
@@ -51,12 +52,12 @@ const insertDecisionStmt = db.prepare(
 );
 
 const recentReadingsStmt = db.prepare(
-  `SELECT ts, sim_hour AS simHour, temperature, oxygen FROM readings
+  `SELECT ts, sim_hour AS simHour, temperature, oxygen, recommended_kg AS recommendedKg FROM readings
    WHERE tank_id = ? ORDER BY id DESC LIMIT ?`
 );
 
 const latestReadingStmt = db.prepare(
-  `SELECT ts, sim_hour AS simHour, temperature, oxygen FROM readings
+  `SELECT ts, sim_hour AS simHour, temperature, oxygen, recommended_kg AS recommendedKg FROM readings
    WHERE tank_id = ? ORDER BY id DESC LIMIT 1`
 );
 

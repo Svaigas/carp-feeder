@@ -111,10 +111,21 @@ class Simulator extends EventEmitter {
     this.simMinutes += this.minutesPerTick;
   }
 
+  get running() {
+    return this.timer != null;
+  }
+
   start(intervalMs = 1500) {
+    this.intervalMs = intervalMs;
     if (this.timer) return;
     this.tick();
-    this.timer = setInterval(() => this.tick(), intervalMs);
+    this.timer = setInterval(() => this.tick(), this.intervalMs);
+  }
+
+  /** Wznawia symulacje bez natychmiastowego ticka (kontynuuje od zatrzymanego stanu). */
+  resume() {
+    if (this.timer) return;
+    this.timer = setInterval(() => this.tick(), this.intervalMs || 1500);
   }
 
   stop() {
