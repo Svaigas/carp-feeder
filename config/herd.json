@@ -1,0 +1,33 @@
+{
+  "gospodarstwo": "Gospodarstwo Stawowe - Symulacja DSS",
+  "opis": "Parametry obsady (zmieniaja sie rzadko) trzymane w pliku konfiguracyjnym JSON. Odczyty srodowiskowe ida do relacyjnej bazy danych.",
+  "zbiorniki": [
+    {
+      "id": "STAW-A1",
+      "nazwa": "Staw A1 - narybek",
+      "powierzchniaHa": 2.5,
+      "etap": "K1",
+      "liczbaRyb": 45000,
+      "masaJednostkowaG": 35,
+      "paszaId": "aller-carp-ex-2mm"
+    },
+    {
+      "id": "STAW-B2",
+      "nazwa": "Staw B2 - kroczek",
+      "powierzchniaHa": 6.0,
+      "etap": "K2",
+      "liczbaRyb": 8000,
+      "masaJednostkowaG": 450,
+      "paszaId": "aller-carp-rex-6mm"
+    },
+    {
+      "id": "STAW-C3",
+      "nazwa": "Staw C3 - ryba handlowa",
+      "powierzchniaHa": 12.0,
+      "etap": "K3",
+      "liczbaRyb": 3500,
+      "masaJednostkowaG": 1650,
+      "paszaId": "aller-carp-pro-9mm"
+    }
+  ]
+}

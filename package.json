@@ -1,0 +1,24 @@
+{
+  "name": "carp-feeder-dss",
+  "version": "1.0.0",
+  "description": "System wspomagania decyzji (DSS) do optymalizacji dawek pokarmowych karpia (Cyprinus carpio) z uwzglednieniem dynamiki warunkow termiczno-tlenowych.",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test test/"
+  },
+  "keywords": [
+    "aquaculture",
+    "carp",
+    "dss",
+    "precision-fish-farming",
+    "feeding"
+  ],
+  "author": "Mateusz Dawid Adamiec",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2"
+  }
+}

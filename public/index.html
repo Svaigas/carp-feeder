@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carp Feeder DSS — system wspomagania decyzji</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="uni-logo" src="logo-uwm.png" alt="Wydział Bioinżynierii Zwierząt UWM w Olsztynie" />
+      <span class="logo">🐟</span>
+      <div>
+        <h1>Carp Feeder <span class="accent">DSS</span></h1>
+        <p class="subtitle">Optymalizacja dawek pokarmowych karpia <i>(Cyprinus carpio)</i> — dynamika termiczno-tlenowa</p>
+        <p class="affil">Wydział Bioinżynierii Zwierząt · UWM w Olsztynie</p>
+      </div>
+    </div>
+    <div class="clock">
+      <div class="clock-time" id="simClock">--:--</div>
+      <div class="clock-label">czas symulacji</div>
+      <div class="clock-set">
+        <input type="time" id="timeInput" value="06:00" />
+        <button id="setTime">Ustaw</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="controls">
+    <div class="control-group">
+      <label>Scenariusz środowiskowy</label>
+      <div class="scenario-buttons" id="scenarioButtons"></div>
+    </div>
+    <div class="control-group manual">
+      <label>Sterowanie ręczne (nadpisuje symulator)</label>
+      <div class="sliders">
+        <div class="slider-row">
+          <span>🌡️ Temperatura</span>
+          <input type="range" id="tempSlider" min="5" max="40" step="0.5" value="26" />
+          <output id="tempOut">26.0 °C</output>
+        </div>
+        <div class="slider-row">
+          <span>💨 Tlen O₂</span>
+          <input type="range" id="oxySlider" min="0" max="12" step="0.1" value="7.5" />
+          <output id="oxyOut">7.5 mg/l</output>
+        </div>
+        <button id="resetManual" class="btn-reset">↺ Wróć do scenariusza</button>
+      </div>
+    </div>
+  </section>
+
+  <main id="tanks" class="tank-grid"></main>
+
+  <footer class="footer">
+    <div class="legend">
+      <span><b>Algorytm:</b> dawka bazowa (% biomasy, Wojda 2006) × mnożnik T (Horoszewicz 1973) × mnożnik O₂ (indeks stresu) → fail-safe z histerezą</span>
+    </div>
+    <div class="meta">Praca: „Projekt systemu wspomagania decyzji…” — M. D. Adamiec, UWM Olsztyn 2026 · Node.js + SQLite</div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+{
+  "opis": "Przykladowe pasze ekstrudowane stosowane w akwakulturze karpia. Parametry orientacyjne na podstawie kart produktowych producentow (Aller Aqua, Alltech Coppens, Skretting).",
+  "pasze": [
+    {
+      "id": "aller-carp-ex-2mm",
+      "producent": "Aller Aqua",
+      "nazwa": "ALLER CARP EX",
+      "typ": "ekstrudowana plywajaca",
+      "granulacjaMm": 2.0,
+      "bialkoProcent": 38,
+      "tluszczProcent": 8,
+      "energiaMJkg": 16.5,
+      "etap": "K1",
+      "cenaPlnKg": 6.8,
+      "opis": "Wysokobialkowa pasza startowa dla narybku, plywajaca - umozliwia obserwacje zerowania."
+    },
+    {
+      "id": "aller-carp-rex-6mm",
+      "producent": "Aller Aqua",
+      "nazwa": "ALLER CARP REX",
+      "typ": "ekstrudowana wolnotonaca",
+      "granulacjaMm": 6.0,
+      "bialkoProcent": 32,
+      "tluszczProcent": 7,
+      "energiaMJkg": 15.2,
+      "etap": "K2",
+      "cenaPlnKg": 5.4,
+      "opis": "Pasza wzrostowa dla kroczka, dobra hydrostabilnosc, zbilansowana energetycznie."
+    },
+    {
+      "id": "aller-carp-pro-9mm",
+      "producent": "Aller Aqua",
+      "nazwa": "ALLER CARP PRO",
+      "typ": "ekstrudowana tonaca",
+      "granulacjaMm": 9.0,
+      "bialkoProcent": 28,
+      "tluszczProcent": 7,
+      "energiaMJkg": 14.8,
+      "etap": "K3",
+      "cenaPlnKg": 4.9,
+      "opis": "Pasza wykonczeniowa dla ryby handlowej, obnizone bialko, ograniczenie odkladania tluszczu."
+    },
+    {
+      "id": "coppens-carp-excellent-4mm",
+      "producent": "Alltech Coppens",
+      "nazwa": "Carp Excellent Floating",
+      "typ": "ekstrudowana plywajaca",
+      "granulacjaMm": 4.5,
+      "bialkoProcent": 30,
+      "tluszczProcent": 7,
+      "energiaMJkg": 15.0,
+      "etap": "K2",
+      "cenaPlnKg": 5.1,
+      "opis": "Plywajaca pasza dla karpia, atraktanty smakowe stymulujace pobranie."
+    },
+    {
+      "id": "skretting-carp-vital-3mm",
+      "producent": "Skretting",
+      "nazwa": "Carp Vital",
+      "typ": "ekstrudowana wolnotonaca",
+      "granulacjaMm": 3.0,
+      "bialkoProcent": 35,
+      "tluszczProcent": 9,
+      "energiaMJkg": 16.0,
+      "etap": "K1",
+      "cenaPlnKg": 6.2,
+      "opis": "Pasza dla mlodszych roczników z podwyzszonym profilem aminokwasowym."
+    },
+    {
+      "id": "aller-bronze-3mm",
+      "producent": "Aller Aqua",
+      "nazwa": "ALLER BRONZE",
+      "typ": "ekstrudowana plywajaca",
+      "granulacjaMm": 3.0,
+      "bialkoProcent": 30,
+      "tluszczProcent": 8,
+      "energiaMJkg": 15.5,
+      "etap": "K2",
+      "cenaPlnKg": 4.6,
+      "opis": "Ekonomiczna pasza uniwersalna dla ryb karpiowatych."
+    }
+  ]
+}

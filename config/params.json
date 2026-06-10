@@ -1,0 +1,50 @@
+{
+  "opis": "Progi i mnozniki algorytmu decyzyjnego. Wartosci oparte na literaturze cytowanej w pracy: Horoszewicz (1973), Brylinska (2000), Wojda (2006), Guziur i in. (2003).",
+
+  "etapyWagowe": [
+    {
+      "etap": "K1",
+      "nazwa": "Narybek",
+      "maxMasaG": 50,
+      "dawkaBazowaProcent": 6.0,
+      "bialkoProcent": "40-45%",
+      "opis": "Najwyzsze relatywne tempo wzrostu, najwyzsze zapotrzebowanie na bialko."
+    },
+    {
+      "etap": "K2",
+      "nazwa": "Kroczek",
+      "maxMasaG": 1000,
+      "dawkaBazowaProcent": 3.0,
+      "bialkoProcent": "30-35%",
+      "opis": "Metabolizm stabilny, energia z tluszczow i weglowodanow."
+    },
+    {
+      "etap": "K3",
+      "nazwa": "Ryba handlowa",
+      "maxMasaG": null,
+      "dawkaBazowaProcent": 1.8,
+      "bialkoProcent": "25-30%",
+      "opis": "Ryzyko przekarmienia i odkladania tluszczu okolonarzadowego."
+    }
+  ],
+
+  "temperatura": {
+    "optimumMin": 23.0,
+    "optimumMax": 29.0,
+    "krytycznaGora": 32.5,
+    "krytycznaGoraHistereza": 31.5,
+    "koniecSezonu": 10.0,
+    "letalna": 40.6,
+    "opis": "23-29 C optimum (mnoznik 1.0). Powyzej 32.5 C stres cieplny -> blokada. Ponizej 10 C koniec sezonu zywieniowego."
+  },
+
+  "tlen": {
+    "optimum": 5.0,
+    "krytyczny": 3.0,
+    "krytycznyHistereza": 4.0,
+    "letalny": 2.0,
+    "wspolczynnikStresuTermicznego": 0.15,
+    "tempReferencyjnaC": 25.0,
+    "opis": "Wymagany O2 = optimum + (T - 25)*0.15 powyzej 25 C (indeks stresu letniego). Ponizej 3 mg/l twardy fail-safe."
+  }
+}
